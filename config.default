@@ -17,16 +17,21 @@ gmailpass="password"
 # Send alerts to these email addresses
 declare -a emails=(bob@home.com eddiespager@wireless.com)
 
-###############################################################
+# Interval between checks. Default is 300 seconds
+# (5 minutes).
+# Balance between checking too often, which may 
+# spam a lot of emails if something goes wrong
+# and isn't resolved quickly and can cause
+# unnecessary server load, and checking often enough.
+check_interval=300
 
-# check config
 ###############################################################
 
 # grep for any of these in 'df' (disk free) output and 
 # use first match
 declare -a diskdevice=("sda" "/home")
-min_disk_free=5
-
+min_disk_free=5  # percent
+min_ram_mb_free=400
 
 # send HTTP GET to this URL
 checkurl="http://localhost/"

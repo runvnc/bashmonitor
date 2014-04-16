@@ -13,12 +13,23 @@ if [[ ! -f ./config ]]; then
   exit 1
 fi
 
+getscriptdir() {
+  SOURCE="${BASH_SOURCE[0]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+}
+
+getscriptdir
+
 sendgmail(){
   # $emailbody = body of email
   # $emails = recepints
   for emailaddr in "${emails[@]}"
   do
-
     rm mail.txt
     touch mail.txt
     echo 'From: "alerter" <alerter@scripto.me>' >> mail.txt
@@ -36,27 +47,62 @@ sendgmail(){
   done
 }
 
+alert_if_low_disk() {
+  # $1 = perc_disk_free
+  # $2 = host
+  if (( $1 < min_disk_free )); then
+    emailbody="Low disk space on $hst: only $1% free"
+    sendgmail
+  fi
+}
+
+alert_if_low_ram() {
+  # $1 = mb_ram_free
+  # $2 = host
+  if (( $1 < min_ram_mb_free )); then
+    emailbody="Low memory on $hst: only $1 mb ram free"
+    sendgmail
+  fi
+}
+
+alert_if_app_not_running() {
+  # $1 = 'ok' or 'fail'
+  # $2 = host
+  if [[ "$1" == "fail" ]]; then
+    emailbody="App not running on $hst"
+    sendgmail 
+  fi
+}
+
+
 monitor() {
-  source ./config
-  cat config check >configcheck
-  chmod u+x configcheck
-  for hst in "${hosts[@]}"
+  while :
   do
-    IFS=$'\n'
-    stats=( $(sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
-    declare -i perc_disk_free
-    declare -i mb_ram_free
-    perc_disk_free=${stats[0]}
-    mb_ram_free=${stats[1]}
-    app_running=${stats[2]}
-    echo "Stats for $hst: df=$perc_disk_free ramfree=$mb_ram_free app running=$app_running"
-    if (( perc_disk_free < min_disk_free )); then
-      emailbody="Low disk space on $hst: only $perc_disk_free"
-      echo "emailbody is " $emailbody
-      sendgmail
-    fi
+    source ./config
+    cat config check >configcheck
+    chmod u+x configcheck
+    for hst in "${hosts[@]}"
+    do
+      IFS=$'\n'
+      stats=( $($DIR/timeout -t 30 sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
+      if [[ "$stats" == "" ]]; then
+        emailbody="Could not connect to $hst"
+        echo "emailbody is " $emailbody
+        sendgmail
+      else
+        declare -i perc_disk_free
+        declare -i mb_ram_free
+        perc_disk_free=${stats[0]}
+        mb_ram_free=${stats[1]}
+        app_running=${stats[2]}
+        echo "Stats for $hst: df=$perc_disk_free% ramfree=$mb_ram_free mb app running=$app_running"
+        alert_if_low_disk $perc_disk_free $hst
+        alert_if_low_ram $mb_ram_free $hst
+        alert_if_app_not_running $app_running $hst
+      fi
+    done
+    sleep $check_interval
   done
-  sleep 300
 }
 
 monitor
