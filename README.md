@@ -2,4 +2,4 @@ bashmonitor
 ===========
 Simple monitoring/alert script.  
 
-Change parameters at the top of the script.
+Copy `config.default` as a template and then change the parameters.
