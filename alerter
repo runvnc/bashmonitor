@@ -1,5 +1,7 @@
 #!/bin/bash
-# Requires curl
+# Requires curl, sshpass to be installed
+type curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
+type sshpass >/dev/null 2>&1 || { echo >&2 "I require sshpass but it's not installed.  Aborting."; exit 1; }
 
 # Run disk, app and RAM checks repeatedly
 # on some hosts over ssh.
