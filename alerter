@@ -14,13 +14,21 @@ if [[ ! -f ./config ]]; then
 fi
 
 sendgmail(){
-  # $1 = body of email
+  # $emailbody = body of email
   # $emails = recepints
-  echo "$1" > mail.txt
-  echo "Sending the following email text:"
-  echo "$1"
   for emailaddr in "${emails[@]}"
   do
+
+    rm mail.txt
+    touch mail.txt
+    echo 'From: "alerter" <alerter@scripto.me>' >> mail.txt
+    echo 'To: "user" <$emailaddr>'              >> mail.txt
+    echo "Subject: $emailbody"                  >> mail.txt
+    echo ''                                     >> mail.txt
+    echo "$emailbody"                           >> mail.txt
+    echo "Sending the following email text:"
+    echo "$emailbody"
+
     echo "Sending to $emailaddr.."
     curl --url "smtps://smtp.gmail.com:465" --ssl-reqd \
          --mail-from "$gmailuser" --mail-rcpt "$emailaddr" \
@@ -34,10 +42,21 @@ monitor() {
   chmod u+x configcheck
   for hst in "${hosts[@]}"
   do
-    stats=$(ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null)
-    echo "Statistics from $hst: $stats"
+    IFS=$'\n'
+    stats=( $(sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
+    declare -i perc_disk_free
+    declare -i mb_ram_free
+    perc_disk_free=${stats[0]}
+    mb_ram_free=${stats[1]}
+    app_running=${stats[2]}
+    echo "Stats for $hst: df=$perc_disk_free ramfree=$mb_ram_free app running=$app_running"
+    if (( perc_disk_free < min_disk_free )); then
+      emailbody="Low disk space on $hst: only $perc_disk_free"
+      echo "emailbody is " $emailbody
+      sendgmail
+    fi
   done
-  sleep 15
+  sleep 300
 }
 
 monitor
