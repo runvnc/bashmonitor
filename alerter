@@ -1,0 +1,42 @@
+#!/bin/bash
+# Requires curl
+
+# Run disk, app and RAM checks repeatedly
+# on some hosts over ssh.
+# If app is down or a number is too low then send emails.
+
+# Note: you must ensure that the 'monitor' user exists
+# on each host and can log in over ssh.
+
+if [[ ! -f ./config ]]; then
+  echo "Create config file (use config.default as template)"
+  exit 1
+fi
+
+sendgmail(){
+  # $1 = body of email
+  # $emails = recepints
+  echo "$1" > mail.txt
+  echo "Sending the following email text:"
+  echo "$1"
+  for emailaddr in "${emails[@]}"
+  do
+    echo "Sending to $emailaddr.."
+    curl --url "smtps://smtp.gmail.com:465" --ssl-reqd \
+         --mail-from "$gmailuser" --mail-rcpt "$emailaddr" \
+         --upload-file mail.txt --user "$gmailuser:$gmailpass" --insecure
+  done
+}
+
+monitor() {
+  cat config check >configcheck
+  chmod u+x configcheck
+  for hst in "${hosts[@]}"
+  do
+    stats=$(ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null)
+    echo "Statistics from $hst: $stats"
+  done
+  sleep 15
+}
+
+monitor

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# alerter config
+############################################################
+
+# hosts to check
+declare -a hosts=(localhost 1.2.3.4)
+
+# This user must be able to ssh in to all hosts (without password 
+# specified on command line)
+remoteuser="monitor"
+
+# Send gmail alerts using this account
+gmailuser="user@gmail.com"
+gmailpass="password"
+
+# Send alerts to these email addresses
+declare -a emails=(bob@home.com eddiespager@wireless.com)
+
+###############################################################
+
+# check config
+###############################################################
+
+# grep for any of these in 'df' (disk free) output and 
+# use first match
+declare -a diskdevice=("sda" "/home")
+
+# send HTTP GET to this URL
+checkurl="http://localhost/"
+# must return this text as part of response
+okhtml="Moved"
+
+###############################################################
+
