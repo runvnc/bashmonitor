@@ -41,7 +41,7 @@ ram_free() {
 }
 
 app_running() {
-  if [ $(curl -s "$checkurl" | grep "$okhtml" > /dev/null) ]; then
+  if curl -s "$checkurl" | grep "$okhtml" > /dev/null; then
     echo "ok"
   else
     echo "fail"

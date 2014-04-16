@@ -29,6 +29,7 @@ sendgmail(){
 }
 
 monitor() {
+  source ./config
   cat config check >configcheck
   chmod u+x configcheck
   for hst in "${hosts[@]}"
