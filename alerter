@@ -86,7 +86,7 @@ monitor() {
     for hst in "${hosts[@]}"
     do
       IFS=$'\n'
-      stats=( $($DIR/timeout -t 30 sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
+      stats=( $($DIR/timeout -t 60 sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
       if [[ "$stats" == "" ]]; then
         emailbody="Could not connect to $hst"
         echo "emailbody is " $emailbody
