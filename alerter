@@ -78,17 +78,24 @@ alert_if_app_not_running() {
   fi
 }
 
-
 monitor() {
   while :
   do
     source ./config
     cat config check >configcheck
     chmod u+x configcheck
+    if [[ "$localmode" == "true" ]]; then
+      echo "localmode=true so only running on localhost"
+      declare -a hosts=(127.0.0.1)  
+    fi
     for hst in "${hosts[@]}"
     do
       IFS=$'\n'
-      stats=( $($DIR/timeout -t 60 sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
+      if [[ "$localmode" == "true" ]]; then
+        stats=( $($DIR/timeout -t 60 ./configcheck 2>/dev/null) ) 
+      else
+        stats=( $($DIR/timeout -t 60 sshpass -p $remotepass ssh $remoteuser@$hst 'bash -s' < configcheck 2>/dev/null) )
+      fi
       if [[ "$stats" == "" ]]; then
         emailbody="Could not connect to $hst"
         echo "emailbody is " $emailbody

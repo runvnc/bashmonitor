@@ -6,6 +6,10 @@
 # hosts to check
 declare -a hosts=(localhost 1.2.3.4)
 
+# if this is true then don't run
+# over ssh, just run locally
+localmode=true
+
 # This user must be able to ssh in to all hosts
 remoteuser="monitor"
 remotepass="monitor2014"
