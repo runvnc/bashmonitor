@@ -38,7 +38,7 @@ min_disk_free=5  # percent
 min_ram_mb_free=400
 
 # send HTTP GET to this URL
-checkurl="http://localhost/"
+checkurl="http://localhost:8090/"
 # must return this text as part of response
 okhtml="Moved"
 
