@@ -3,7 +3,7 @@
 # Actually curl is needed on the host we are monitoring
 # This is not checked.
 type curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
-type sshpass >/dev/null 2>&1 || { echo >&2 "I require sshpass but it's not installed.  Aborting."; exit 1; }
+#type sshpass >/dev/null 2>&1 || { echo >&2 "I require sshpass but it's not installed.  Aborting."; exit 1; }
 
 # Run disk, app and RAM checks repeatedly
 # on some hosts over ssh.
@@ -36,18 +36,19 @@ sendgmail(){
   do
     rm mail.txt
     touch mail.txt
-    echo 'From: "alerter" <alerter@scripto.me>' >> mail.txt
+    echo 'From: "alerter" <alerter@coinado.com>' >> mail.txt
     echo 'To: "user" <$emailaddr>'              >> mail.txt
-    echo "Subject: $emailbody"                  >> mail.txt
+    echo "Subject: Dallas server: $emailbody"                  >> mail.txt
     echo ''                                     >> mail.txt
     echo "$emailbody"                           >> mail.txt
     echo "Sending the following email text:"
     echo "$emailbody"
 
     echo "Sending to $emailaddr.."
-    curl --url "smtps://smtp.gmail.com:465" --ssl-reqd \
+    set -x
+    curl --url "smtp://smtp.sendgrid.com:587" \
          --mail-from "$gmailuser" --mail-rcpt "$emailaddr" \
-         --upload-file mail.txt --user "$gmailuser:$gmailpass" --insecure
+         --upload-file mail.txt --user "$gmailuser:$gmailpass" -k
   done
 }
 
