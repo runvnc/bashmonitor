@@ -3,7 +3,7 @@
 # Actually curl is needed on the host we are monitoring
 # This is not checked.
 type curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
-type my-local-ip >/dev/null 2>&1 || { echo >&2 "I require my-local-ip but its not installed. Aborting."; exit 1 }
+type my-local-ip >/dev/null 2>&1 || { echo >&2 "I require my-local-ip but its not installed. Aborting."; exit 1; }
 #type sshpass >/dev/null 2>&1 || { echo >&2 "I require sshpass but it's not installed.  Aborting."; exit 1; }
 
 # Run disk, app and RAM checks repeatedly
