@@ -3,6 +3,7 @@
 # Actually curl is needed on the host we are monitoring
 # This is not checked.
 type curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
+type my-local-ip >/dev/null 2>&1 || { echo >&2 "I require my-local-ip but its not installed. Aborting."; exit 1 }
 #type sshpass >/dev/null 2>&1 || { echo >&2 "I require sshpass but it's not installed.  Aborting."; exit 1; }
 
 # Run disk, app and RAM checks repeatedly
@@ -16,6 +17,8 @@ if [[ ! -f ./config ]]; then
   echo "Create config file (use config.default as template)"
   exit 1
 fi
+
+myip=$(my-local-ip)
 
 getscriptdir() {
   SOURCE="${BASH_SOURCE[0]}"
@@ -38,7 +41,7 @@ sendgmail(){
     touch mail.txt
     echo 'From: "alerter" <alerter@coinado.com>' >> mail.txt
     echo 'To: "user" <$emailaddr>'              >> mail.txt
-    echo "Subject: Dallas server: $emailbody"                  >> mail.txt
+    echo "Subject: $myip: $emailbody"                  >> mail.txt
     echo ''                                     >> mail.txt
     echo "$emailbody"                           >> mail.txt
     echo "Sending the following email text:"
